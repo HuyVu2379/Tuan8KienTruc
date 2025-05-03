@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: Circuit_Breaker
+resilience4j.circuitbreaker:
+  instances:
+    serviceA:
+      registerHealthIndicator: true
+      slidingWindowSize: 5                             # Số lượng cuộc gọi để đánh giá
+      minimumNumberOfCalls: 3                          # Số cuộc gọi tối thiểu trước khi tính tỷ lệ thất bại
+      permittedNumberOfCallsInHalfOpenState: 3         # Số lượng cuộc gọi cho phép ở trạng thái HALF_OPEN
+      automaticTransitionFromOpenToHalfOpenEnabled: true # Tự động chuyển từ OPEN sang HALF_OPEN
+      waitDurationInOpenState: 5s                      # Thời gian duy trì ở trạng thái OPEN
+      failureRateThreshold: 80                         # Tỷ lệ thất bại kích hoạt trạng thái OPEN
+# Cấu hình cho MockAPI
+mock-api:
+  base-url: https://67150f4d33bc2bfe40b94064.mockapi.io
+  products-endpoint: /products
+
+# Cấu hình Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+server:
+  port: 8080
