@@ -1,32 +1,63 @@
 spring:
   application:
     name: Circuit_Breaker
-resilience4j.circuitbreaker:
-  instances:
-    serviceA:
-      registerHealthIndicator: true
-      slidingWindowSize: 5                             # Số lượng cuộc gọi để đánh giá
-      minimumNumberOfCalls: 3                          # Số cuộc gọi tối thiểu trước khi tính tỷ lệ thất bại
-      permittedNumberOfCallsInHalfOpenState: 3         # Số lượng cuộc gọi cho phép ở trạng thái HALF_OPEN
-      automaticTransitionFromOpenToHalfOpenEnabled: true # Tự động chuyển từ OPEN sang HALF_OPEN
-      waitDurationInOpenState: 5s                      # Thời gian duy trì ở trạng thái OPEN
-      failureRateThreshold: 80                         # Tỷ lệ thất bại kích hoạt trạng thái OPEN
-# Cấu hình cho MockAPI
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      mockApiService:
+        slidingWindowSize: 7
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+  retry:
+    instances:
+      mockApiRetry:
+        maxAttempts: 3
+        waitDuration: 500
+        retryExceptions:
+          - java.lang.RuntimeException
+          - org.springframework.web.client.HttpServerErrorException
+          - org.springframework.web.client.HttpClientErrorException
+  timelimiter:
+    instances:
+      mockApiTimeLimiter:
+        timeoutDuration: 1000  # Timeout sau 1000ms
+        cancelRunningFuture: true  # Hủy Future nếu timeout
+  ratelimiter:
+    instances:
+      mockApiRateLimiter:
+        limitForPeriod: 10  # Tối đa 10 yêu cầu
+        limitRefreshPeriod: 1s  # Chu kỳ làm mới 1 giây
+        timeoutDuration: 500  # Chờ tối đa 500ms nếu bị giới hạn
+
 mock-api:
   base-url: https://67150f4d33bc2bfe40b94064.mockapi.io
   products-endpoint: /products
 
-# Cấu hình Actuator endpoints
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,circuitbreakers,retries,timelimiters,ratelimiters
   endpoint:
     health:
       show-details: always
   health:
     circuitbreakers:
       enabled: true
+    retries:
+      enabled: true
+    timelimiters:
+      enabled: true
+    ratelimiters:
+      enabled: true
+
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+    fit.iuh.student.circuit_breaker: DEBUG
+
 server:
   port: 8080
