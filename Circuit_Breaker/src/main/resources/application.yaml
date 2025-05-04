@@ -29,7 +29,7 @@ resilience4j:
     instances:
       mockApiRateLimiter:
         limitForPeriod: 10  # Tối đa 10 yêu cầu
-        limitRefreshPeriod: 1s  # Chu kỳ làm mới 1 giây
+        limitRefreshPeriod: 2s  # Chu kỳ làm mới 1 giây
         timeoutDuration: 500  # Chờ tối đa 500ms nếu bị giới hạn
 
 mock-api:
